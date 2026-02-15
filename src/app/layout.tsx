@@ -19,6 +19,8 @@ export const metadata: Metadata = {
   description: "Projects, tasks, leads and requirements manager",
 };
 
+export const dynamic = "force-dynamic";
+
 export default function RootLayout({
   children,
 }: Readonly<{

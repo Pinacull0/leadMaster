@@ -1,19 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const securityHeaders: Record<string, string> = {
-  "Content-Security-Policy": [
+function buildCsp(nonce: string) {
+  return [
     "default-src 'self'",
     "base-uri 'self'",
     "form-action 'self'",
     "frame-ancestors 'none'",
     "object-src 'none'",
-    "script-src 'self'",
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'`,
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: blob:",
     "font-src 'self'",
     "connect-src 'self'",
     "upgrade-insecure-requests",
-  ].join("; "),
+  ].join("; ");
+}
+
+const securityHeaders: Omit<Record<string, string>, "Content-Security-Policy"> = {
   "Referrer-Policy": "no-referrer",
   "X-Content-Type-Options": "nosniff",
   "X-Frame-Options": "DENY",
@@ -23,7 +26,22 @@ const securityHeaders: Record<string, string> = {
 };
 
 export function middleware(req: NextRequest) {
-  const res = NextResponse.next();
+  const bytes = crypto.getRandomValues(new Uint8Array(16));
+  const nonce = btoa(String.fromCharCode(...bytes));
+  const csp = buildCsp(nonce);
+  const reqHeaders = new Headers(req.headers);
+
+  reqHeaders.set("x-nonce", nonce);
+  reqHeaders.set("Content-Security-Policy", csp);
+
+  const res = NextResponse.next({
+    request: {
+      headers: reqHeaders,
+    },
+  });
+
+  res.headers.set("Content-Security-Policy", csp);
+  res.headers.set("x-nonce", nonce);
 
   for (const [name, value] of Object.entries(securityHeaders)) {
     res.headers.set(name, value);
