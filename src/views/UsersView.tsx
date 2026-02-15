@@ -1,9 +1,9 @@
 ﻿"use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { authFetch, getToken } from "@/utils/auth-client";
-import { parseToken } from "@/utils/jwt-client";
+import { useCallback, useEffect, useState } from "react";
+import { authFetch } from "@/utils/auth-client";
 import RequireAuth from "@/components/RequireAuth";
+import { useSession } from "@/hooks/useSession";
 
 type User = {
   id: number;
@@ -26,8 +26,7 @@ export default function UsersView() {
   const [editRole, setEditRole] = useState<User["role"]>("USER");
   const [editPassword, setEditPassword] = useState("");
 
-  const roleToken = useMemo(() => parseToken(getToken())?.role, []);
-  const isAdmin = roleToken === "ADMIN";
+  const { isAdmin } = useSession();
 
   const load = useCallback(async () => {
     setLoading(true);

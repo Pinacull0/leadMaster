@@ -2,16 +2,15 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { clearToken, getToken } from "@/utils/auth-client";
-import { parseToken } from "@/utils/jwt-client";
+import { logout } from "@/utils/auth-client";
+import { useSession } from "@/hooks/useSession";
 
 export default function Navbar() {
   const pathname = usePathname();
   if (pathname === "/login") return null;
 
-  const token = getToken();
-  const isLogged = Boolean(token);
-  const role = parseToken(token)?.role;
+  const { isLogged, user } = useSession();
+  const role = user?.role;
 
   return (
     <header className="nav">
@@ -27,8 +26,8 @@ export default function Navbar() {
         {isLogged ? (
           <button
             className="btn ghost"
-            onClick={() => {
-              clearToken();
+            onClick={async () => {
+              await logout();
               window.location.href = "/login";
             }}
           >

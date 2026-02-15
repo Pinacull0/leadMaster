@@ -1,9 +1,9 @@
 ﻿"use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { authFetch, getToken } from "@/utils/auth-client";
-import { parseToken } from "@/utils/jwt-client";
+import { useCallback, useEffect, useState } from "react";
+import { authFetch } from "@/utils/auth-client";
 import RequireAuth from "@/components/RequireAuth";
+import { useSession } from "@/hooks/useSession";
 
 type Lead = {
   id: number;
@@ -30,7 +30,7 @@ export default function LeadsView() {
   const [editStatus, setEditStatus] = useState<Lead["status"]>("NEW");
   const [editNotes, setEditNotes] = useState("");
 
-  const role = useMemo(() => parseToken(getToken())?.role, []);
+  const { isAdmin } = useSession();
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -114,7 +114,7 @@ export default function LeadsView() {
             <h1>Leads</h1>
             <p>Controle do funil e acompanhamento comercial.</p>
           </div>
-          <div className="pill">{role === "ADMIN" ? "Admin" : "User"}</div>
+          <div className="pill">{isAdmin ? "Admin" : "User"}</div>
         </header>
 
         <form className="card form" onSubmit={onCreate}>

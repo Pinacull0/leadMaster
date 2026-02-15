@@ -1,12 +1,15 @@
-﻿import { NextRequest } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { getOne, update, remove } from "@/controllers/notes";
+import { parsePositiveIntId } from "@/utils/security";
 
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  return getOne(req, Number(id));
+  const parsedId = parsePositiveIntId(id);
+  if (!parsedId) return NextResponse.json({ error: "Invalid id" }, { status: 400 });
+  return getOne(req, parsedId);
 }
 
 export async function PUT(
@@ -14,7 +17,9 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  return update(req, Number(id));
+  const parsedId = parsePositiveIntId(id);
+  if (!parsedId) return NextResponse.json({ error: "Invalid id" }, { status: 400 });
+  return update(req, parsedId);
 }
 
 export async function DELETE(
@@ -22,5 +27,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  return remove(req, Number(id));
+  const parsedId = parsePositiveIntId(id);
+  if (!parsedId) return NextResponse.json({ error: "Invalid id" }, { status: 400 });
+  return remove(req, parsedId);
 }

@@ -6,7 +6,9 @@ export type AuthPayload = {
 };
 
 const JWT_ALG = "HS256";
-const EXPIRATION = "25d";
+const EXPIRATION = "8h";
+const JWT_ISSUER = process.env.JWT_ISSUER || "allmanager";
+const JWT_AUDIENCE = process.env.JWT_AUDIENCE || "allmanager-app";
 
 export function signToken(payload: AuthPayload) {
   const secret = process.env.JWT_SECRET;
@@ -14,7 +16,13 @@ export function signToken(payload: AuthPayload) {
     throw new Error("JWT_SECRET is not set");
   }
 
-  return jwt.sign(payload, secret, { algorithm: JWT_ALG, expiresIn: EXPIRATION });
+  return jwt.sign(payload, secret, {
+    algorithm: JWT_ALG,
+    expiresIn: EXPIRATION,
+    issuer: JWT_ISSUER,
+    audience: JWT_AUDIENCE,
+    subject: String(payload.userId),
+  });
 }
 
 export function verifyToken(token: string): AuthPayload {
@@ -23,9 +31,23 @@ export function verifyToken(token: string): AuthPayload {
     throw new Error("JWT_SECRET is not set");
   }
 
-  const decoded = jwt.verify(token, secret, { algorithms: [JWT_ALG] }) as JwtPayload;
+  const decoded = jwt.verify(token, secret, {
+    algorithms: [JWT_ALG],
+    issuer: JWT_ISSUER,
+    audience: JWT_AUDIENCE,
+  }) as JwtPayload;
+
+  const userId = Number(decoded.userId);
+  const role = decoded.role;
+  if (!Number.isInteger(userId) || userId <= 0) {
+    throw new Error("Invalid token payload");
+  }
+  if (role !== "ADMIN" && role !== "USER") {
+    throw new Error("Invalid token payload");
+  }
+
   return {
-    userId: Number(decoded.userId),
-    role: decoded.role as "ADMIN" | "USER",
+    userId,
+    role,
   };
 }

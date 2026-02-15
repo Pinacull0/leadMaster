@@ -7,6 +7,8 @@ import {
   updateRequirement,
   deleteRequirement,
 } from "@/services/requirements";
+import { validateJsonRequest } from "@/utils/security";
+import { normalizeOptionalText, normalizeRequirementStatus, normalizeText } from "@/utils/validation";
 
 export async function list(req: NextRequest) {
   const auth = requireAdmin(req);
@@ -20,20 +22,23 @@ export async function create(req: NextRequest) {
   const auth = requireAdmin(req);
   if ("error" in auth) return auth.error;
 
-  const body = await req.json();
-  const { title, description, status } = body as {
-    title?: string;
-    description?: string | null;
-    status?: "OPEN" | "IN_PROGRESS" | "DONE";
-  };
+  const invalidJson = validateJsonRequest(req);
+  if (invalidJson) return invalidJson;
+  const body = (await req.json()) as Record<string, unknown>;
+  const title = normalizeText(body.title, 200);
+  const description = normalizeOptionalText(body.description, 4000);
+  const status = body.status === undefined ? undefined : normalizeRequirementStatus(body.status);
 
   if (!title) {
     return NextResponse.json({ error: "title is required" }, { status: 400 });
   }
+  if (body.status !== undefined && !status) {
+    return NextResponse.json({ error: "Invalid status" }, { status: 400 });
+  }
 
   const id = await createRequirement({
     title,
-    description: description || null,
+    description,
     status,
     created_by: auth.payload.userId,
   });
@@ -54,8 +59,30 @@ export async function update(req: NextRequest, id: number) {
   const auth = requireAdmin(req);
   if ("error" in auth) return auth.error;
 
-  const body = await req.json();
-  const affected = await updateRequirement(id, body);
+  const invalidJson = validateJsonRequest(req);
+  if (invalidJson) return invalidJson;
+  const body = (await req.json()) as Record<string, unknown>;
+  const input: { title?: string; description?: string | null; status?: "OPEN" | "IN_PROGRESS" | "DONE" } = {};
+
+  if (body.title !== undefined) {
+    const title = normalizeText(body.title, 200);
+    if (!title) return NextResponse.json({ error: "Invalid title" }, { status: 400 });
+    input.title = title;
+  }
+  if (body.description !== undefined) {
+    const description = normalizeOptionalText(body.description, 4000);
+    if (body.description !== null && !description) {
+      return NextResponse.json({ error: "Invalid description" }, { status: 400 });
+    }
+    input.description = description;
+  }
+  if (body.status !== undefined) {
+    const status = normalizeRequirementStatus(body.status);
+    if (!status) return NextResponse.json({ error: "Invalid status" }, { status: 400 });
+    input.status = status;
+  }
+
+  const affected = await updateRequirement(id, input);
   if (!affected) return NextResponse.json({ error: "Not found or no changes" }, { status: 404 });
   return NextResponse.json({ ok: true });
 }

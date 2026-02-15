@@ -1,10 +1,10 @@
 ﻿"use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { authFetch, getToken } from "@/utils/auth-client";
-import { parseToken } from "@/utils/jwt-client";
+import { useCallback, useEffect, useState } from "react";
+import { authFetch } from "@/utils/auth-client";
 import Link from "next/link";
 import RequireAuth from "@/components/RequireAuth";
+import { useSession } from "@/hooks/useSession";
 
 type Task = {
   id: number;
@@ -34,8 +34,7 @@ export default function TasksView({ projectId }: Props) {
   const [editPriority, setEditPriority] = useState<Task["priority"]>("MEDIUM");
   const [editDueDate, setEditDueDate] = useState("");
 
-  const role = useMemo(() => parseToken(getToken())?.role, []);
-  const isAdmin = role === "ADMIN";
+  const { isAdmin } = useSession();
 
   const load = useCallback(async () => {
     setLoading(true);

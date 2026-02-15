@@ -1,7 +1,6 @@
 ﻿"use client";
 
 import { useState } from "react";
-import { setToken } from "@/utils/auth-client";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -14,6 +13,7 @@ export default function LoginPage() {
     const res = await fetch("/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      credentials: "include",
       body: JSON.stringify({ email, password }),
     });
 
@@ -23,7 +23,10 @@ export default function LoginPage() {
     }
 
     const data = await res.json();
-    setToken(data.token);
+    if (!data?.user) {
+      setError("Resposta inválida do servidor");
+      return;
+    }
     window.location.href = "/projects";
   }
 

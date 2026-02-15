@@ -3,9 +3,8 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { authFetch } from "@/utils/auth-client";
-import { parseToken } from "@/utils/jwt-client";
-import { getToken } from "@/utils/auth-client";
 import RequireAuth from "@/components/RequireAuth";
+import { useSession } from "@/hooks/useSession";
 
 type Project = {
   id: number;
@@ -26,8 +25,7 @@ export default function ProjectsView() {
   const [editDescription, setEditDescription] = useState("");
   const [editStatus, setEditStatus] = useState<Project["status"]>("ACTIVE");
 
-  const token = getToken();
-  const auth = parseToken(token);
+  const { isAdmin } = useSession();
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -108,7 +106,7 @@ export default function ProjectsView() {
           <h1>Projetos</h1>
           <p>Visão geral dos projetos e acesso rápido às tarefas.</p>
         </div>
-        <div className="pill">{auth?.role === "ADMIN" ? "Admin" : "User"}</div>
+        <div className="pill">{isAdmin ? "Admin" : "User"}</div>
       </header>
 
       <form className="card form" onSubmit={onCreate}>

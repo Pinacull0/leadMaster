@@ -1,5 +1,14 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Security Notes
+
+This project now uses cookie-based auth (`HttpOnly` + `SameSite=Strict`) with CSRF validation.
+Set these environment variables in runtime:
+
+- `JWT_SECRET` (required)
+- `JWT_ISSUER` (optional, defaults to `allmanager`)
+- `JWT_AUDIENCE` (optional, defaults to `allmanager-app`)
+
 ## Getting Started
 
 First, run the development server:
