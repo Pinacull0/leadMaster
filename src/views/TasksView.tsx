@@ -37,6 +37,12 @@ export default function TasksView({ projectId }: Props) {
   const { isAdmin } = useSession();
 
   const load = useCallback(async () => {
+    if (!Number.isInteger(projectId) || projectId <= 0) {
+      setError("Projeto inválido");
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     const res = await authFetch(`/api/projects/${projectId}/tasks`);
     if (!res.ok) {
@@ -56,6 +62,12 @@ export default function TasksView({ projectId }: Props) {
   async function onCreate(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+
+    if (!Number.isInteger(projectId) || projectId <= 0) {
+      setError("Projeto inválido");
+      return;
+    }
+
     const res = await authFetch("/api/tasks", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -63,7 +75,8 @@ export default function TasksView({ projectId }: Props) {
     });
 
     if (!res.ok) {
-      setError("Erro ao criar tarefa (somente admin)");
+      const data = (await res.json().catch(() => null)) as { error?: string } | null;
+      setError(data?.error || "Erro ao criar tarefa");
       return;
     }
 
