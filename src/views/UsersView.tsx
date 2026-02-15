@@ -28,6 +28,15 @@ export default function UsersView() {
 
   const { isAdmin } = useSession();
 
+  function isStrongPassword(value: string) {
+    if (value.length < 12 || value.length > 128) return false;
+    if (!/[a-z]/.test(value)) return false;
+    if (!/[A-Z]/.test(value)) return false;
+    if (!/[0-9]/.test(value)) return false;
+    if (!/[^A-Za-z0-9]/.test(value)) return false;
+    return true;
+  }
+
   const load = useCallback(async () => {
     setLoading(true);
     const res = await authFetch("/api/users");
@@ -47,6 +56,20 @@ export default function UsersView() {
   async function onCreate(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+
+    if (!name.trim()) {
+      setError("Nome é obrigatório");
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim().toLowerCase())) {
+      setError("Email inválido");
+      return;
+    }
+    if (!isStrongPassword(password)) {
+      setError("Senha fraca: use 12+ caracteres com maiúscula, minúscula, número e símbolo");
+      return;
+    }
+
     const res = await authFetch("/api/users", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -54,7 +77,8 @@ export default function UsersView() {
     });
 
     if (!res.ok) {
-      setError("Erro ao criar usuário");
+      const data = (await res.json().catch(() => null)) as { error?: string } | null;
+      setError(data?.error || "Erro ao criar usuário");
       return;
     }
 
@@ -117,12 +141,19 @@ export default function UsersView() {
           <form className="card form" onSubmit={onCreate}>
             <div className="form-grid">
               <input placeholder="Nome" value={name} onChange={(e) => setName(e.target.value)} required />
-              <input placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+              <input
+                placeholder="Email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
               <input
                 placeholder="Senha"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                minLength={12}
                 required
               />
               <select value={role} onChange={(e) => setRole(e.target.value as User["role"])}>
@@ -133,6 +164,7 @@ export default function UsersView() {
             <button className="btn" type="submit">
               Criar usuário
             </button>
+            <small>Senha: mínimo 12 caracteres com maiúscula, minúscula, número e símbolo.</small>
             {error && <span className="error">{error}</span>}
           </form>
         )}

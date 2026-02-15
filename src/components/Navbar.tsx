@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -7,10 +7,10 @@ import { useSession } from "@/hooks/useSession";
 
 export default function Navbar() {
   const pathname = usePathname();
-  if (pathname === "/login") return null;
-
   const { isLogged, user } = useSession();
   const role = user?.role;
+
+  if (pathname === "/login") return null;
 
   return (
     <header className="nav">
