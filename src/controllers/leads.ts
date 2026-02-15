@@ -28,7 +28,8 @@ export async function create(req: NextRequest) {
   const name = normalizeText(body.name, 160);
   const email = body.email === undefined ? undefined : normalizeEmail(body.email);
   const phone = body.phone === undefined ? undefined : normalizeOptionalText(body.phone, 40);
-  const status = body.status === undefined ? undefined : normalizeLeadStatus(body.status);
+  const status =
+    body.status === undefined ? undefined : (normalizeLeadStatus(body.status) ?? undefined);
   const notes = body.notes === undefined ? undefined : normalizeOptionalText(body.notes, 4000);
 
   if (!name) {

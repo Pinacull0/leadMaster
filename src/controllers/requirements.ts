@@ -27,7 +27,8 @@ export async function create(req: NextRequest) {
   const body = (await req.json()) as Record<string, unknown>;
   const title = normalizeText(body.title, 200);
   const description = normalizeOptionalText(body.description, 4000);
-  const status = body.status === undefined ? undefined : normalizeRequirementStatus(body.status);
+  const status =
+    body.status === undefined ? undefined : (normalizeRequirementStatus(body.status) ?? undefined);
 
   if (!title) {
     return NextResponse.json({ error: "title is required" }, { status: 400 });

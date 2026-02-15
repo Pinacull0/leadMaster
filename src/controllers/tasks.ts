@@ -30,8 +30,10 @@ export async function create(req: NextRequest) {
   const project_id = normalizePositiveInt(body.project_id);
   const title = normalizeText(body.title, 200);
   const description = normalizeOptionalText(body.description, 4000);
-  const status = body.status === undefined ? undefined : normalizeTaskStatus(body.status);
-  const priority = body.priority === undefined ? undefined : normalizeTaskPriority(body.priority);
+  const status =
+    body.status === undefined ? undefined : (normalizeTaskStatus(body.status) ?? undefined);
+  const priority =
+    body.priority === undefined ? undefined : (normalizeTaskPriority(body.priority) ?? undefined);
   const assigned_to = body.assigned_to === undefined ? undefined : normalizePositiveInt(body.assigned_to);
   const due_date = body.due_date === undefined ? undefined : normalizeDate(body.due_date);
 

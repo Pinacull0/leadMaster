@@ -20,10 +20,11 @@ export async function update(req: NextRequest, id: number) {
   const invalidJson = validateJsonRequest(req);
   if (invalidJson) return invalidJson;
   const body = (await req.json()) as Record<string, unknown>;
-  const name = body.name === undefined ? undefined : normalizeText(body.name, 120);
-  const email = body.email === undefined ? undefined : normalizeEmail(body.email);
-  const role = body.role === undefined ? undefined : normalizeRole(body.role);
-  const password = body.password === undefined ? undefined : validateStrongPassword(body.password);
+  const name = body.name === undefined ? undefined : (normalizeText(body.name, 120) ?? undefined);
+  const email = body.email === undefined ? undefined : (normalizeEmail(body.email) ?? undefined);
+  const role = body.role === undefined ? undefined : (normalizeRole(body.role) ?? undefined);
+  const password =
+    body.password === undefined ? undefined : (validateStrongPassword(body.password) ?? undefined);
 
   if (body.name !== undefined && !name) {
     return NextResponse.json({ error: "Invalid name" }, { status: 400 });
